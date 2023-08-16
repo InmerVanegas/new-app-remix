@@ -1,6 +1,20 @@
-query Input {
+query Input($customerTag:[String!]=[]) {
+
+  cart{
+    cost{
+      subtotalAmount{
+        amount
+      }
+    }
+    buyerIdentity{
+      customer{
+        allowDiscount: hasAnyTag(tags: $customerTag)
+      }
+    }
+  }
+
   discountNode {
-    metafield(namespace: "$app:tiers-discount", key: "function-configuration") {
+    metafield(namespace: "$app:volume-discount", key: "function-configuration") {
       value
     }
   }

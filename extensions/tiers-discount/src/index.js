@@ -19,11 +19,33 @@ export default /**
  * @returns {FunctionResult}
  */
   (input) => {
+
+    /**
+    * @type {{
+    * tiersDiscount:number[]
+    * percentagesDiscount:number[]
+    * }}
+     */
+
     const configuration = JSON.parse(
       input?.discountNode?.metafield?.value ?? "{}"
     );
 
-    const discount_amount = { amount: "29.99" };
+    if (!input.cart.buyerIdentity?.customer?.allowDiscount) {
+      return EMPTY_DISCOUNT;
+    }
+
+    const subtotal = parseFloat(input?.cart?.cost?.subtotalAmount?.amount ?? "0");
+
+    let applicableTier = null;
+    let applicableDiscount = null;
+
+    for (let i = 0; i < configuration.tiersDiscount.length; i++) {
+      if (configuration.tiersDiscount[i] <= subtotal) {
+        applicableTier = configuration.tiersDiscount[i];
+        applicableDiscount = configuration.percentagesDiscount[i];
+      }
+    }
 
     return {
       discounts: [
@@ -35,11 +57,12 @@ export default /**
           }],
           message: "Test Discount",
           value: {
-            fixedAmount: discount_amount
+            percentage: {
+              value: applicableDiscount?.toString()
+            }
           }
         }
       ],
       discountApplicationStrategy: DiscountApplicationStrategy.First
     };
-    /* return EMPTY_DISCOUNT; */
   };
